@@ -1,6 +1,6 @@
 # PSC X Illuin
 
-Nouveau répo, l'architecture des fichiers est plus réfléchie. Plannification à l'avance des fonctions (je me suis posé pour réfléchir à la :sparkles: forme :sparkles: de la webapp). 
+Nouveau répo, l'architecture des fichiers est plus réfléchie. Plannification à l'avance des fonctions (je me suis posé pour réfléchir à la :sparkles: forme :sparkles: du WebUI). 
 
 Point important Pour setup le projet, je vous conseille de faire un environnement virtuel (virtualenv) et d'installer les dépendances dans ce dernier. Je fais un petit tuto sur comment faire tout ça.
 
