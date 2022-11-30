@@ -40,7 +40,7 @@ paramiko==2.12.0
 pdfminer.six==20221105
 pdfplumber==0.7.6
 Pillow==9.3.0
-progressbar==2.5
+progress==1.6
 pycparser==2.21
 pycryptodome==3.16.0
 pydantic==1.10.2
