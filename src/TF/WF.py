@@ -111,9 +111,32 @@ def doc_to_WF(doc_path, WF):
     words = get_words(text)
 
     # add the words to the WF matrix
-    WF = add_words_to_WF(words, doc_path, WF)
+    WF = add_words_to_WF(words, doc_name, WF)
 
     return WF
+
+### --- TEST --- ###
+
+def test1(path, docs):
+    # get list of in 1st doc
+    return get_words(get_text_pdf(path + "/" + docs[0]))
+
+    # TEST OK
+
+def test2(words):
+    # create a WF matrix
+    # add words to WF
+    WF = pd.DataFrame(columns=["word"]+docs)
+    WF = add_words_to_WF(words, docs[0], WF)
+    return(WF)
+
+def test3(path, docs):
+    # Use builder function to do Doc[0] to WF
+    WF = pd.DataFrame(columns=["word"]+docs)
+    WF = doc_to_WF(path + "/" + docs[0], WF)
+    return(WF)
+
+### --- MAIN --- ###
 
 if __name__ == "__main__":
     # Run a test on the corpus 1
@@ -121,20 +144,13 @@ if __name__ == "__main__":
     docs = os.listdir(path)
     results_path = "./results/corpus1"
 
-    # Global variable to decide if progress bar should appear
-    global progress 
+    # Progress bar 
+    global progress
     progress = True
 
-    # Global bar for docs progress in corpus
-    global bar
-    bar = pb.IncrementalBar('Processing Docs', max=len(docs))
+    # Run some tests on functions
+
+    print(test3(path, docs))
     
-    # Create the WF matrix 
-    WF = pd.DataFrame(columns=["word"] + docs)
-    for doc in docs:
-        WF = doc_to_WF(path + "/" + doc, WF)
-        bar.next()
-    bar.finish()
+
     
-    # Save the WF matrix
-    WF.to_csv(results_path + "/WF.csv", index=False)
