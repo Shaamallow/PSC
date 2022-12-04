@@ -1,4 +1,7 @@
 # ignore env files
 env
 
+# ignore all __pycache__ folders
+__pycache__
+
 # i

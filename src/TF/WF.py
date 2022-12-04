@@ -142,15 +142,30 @@ if __name__ == "__main__":
     # Run a test on the corpus 1
     path = "./data/corpus/corpus1"
     docs = os.listdir(path)
-    results_path = "./results/corpus1"
+    results_path = "./data/results/corpus1"
 
     # Progress bar 
     global progress
     progress = True
 
-    # Run some tests on functions
+    # Run the script to generate WF matrix on corpus 1
+    WF = pd.DataFrame(columns=["word"]+docs)
 
-    print(test3(path, docs))
+    # add progress bar for docs
+    if progress:
+        docs_bar = pb.IncrementalBar('Processing Docs', max=len(docs))
+
+    for doc in docs:
+        WF = doc_to_WF(path + "/" + doc, WF)
+        if progress:
+            docs_bar.next()
+    
+    docs_bar.finish()
+
+    # Save WF matrix
+    WF.to_csv(results_path + "/WF.csv", index=False)
+
+
     
 
     

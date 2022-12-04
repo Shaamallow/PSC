@@ -1,5 +1,6 @@
 # import WF module in TF_IDF package
 
-from TF.WF import get_words
+#from hello.machin import * 
 
-get_words('test.txt')
+import TF.WF
+
