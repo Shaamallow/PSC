@@ -34,11 +34,9 @@ class corpus(object):
         Input : text of a document
         return : list of words of the document
         """
-        # remove punctuation
-        text = re.sub(r'[^\w\s]', '', text)
 
-        # remove numbers
-        text = re.sub(r'[0-9]', '', text)
+        # remove all non alphabetical characters and space (keep only words)
+        text = re.sub(r'[^a-zA-Z]', ' ', text)
 
         # remove double spaces
         text = re.sub(' +', ' ', text)
@@ -107,7 +105,25 @@ class corpus(object):
     def save(self, path):
         self.WF.to_csv(path, index=False)
 
-    # TODO : Method to load a corpus from a csv file
+    # Method to load a corpus
+
+    def load(self, corpusID):
+        """
+        Input : ID of an existing corpus such as "corpus1"
+        Change properties of the corpus object accordingly : 
+            - self.path = /data/corpus/corpusID
+            - self.docs = os.listdir(self.path)
+            - self.WF = pd.read_csv(/data/results/corpusID/WF.csv)
+        """
+        self.path = "./data/corpus/" + corpusID
+        self.docs = os.listdir(self.path)
+        # import without index
+        self.WF = pd.read_csv("./data/results/" + corpusID + "/WF.csv", index_col=0 )
+
+    # Method to build a document object from a corpus
+
+
+        
     # TODO : Method to clean WF matrix (remove words too long or that appear in only one document only one time -most likely a typo/failure at import-)
     # TODO : Method to clean WF matrix by check in a dictionnary if the word is a real word
 
@@ -118,6 +134,6 @@ if __name__ == "__main__":
 
     # generate corpus1 WF matrix
 
-    corpus = corpus("./data/corpus/corpus1")
-    corpus.generate_WF()
-    corpus.save("./data/results/corpus1/WF.csv")
+    corpus = corpus("./data/corpus/corpus2")
+    corpus.load("corpus1")
+    print(corpus.WF.head())
