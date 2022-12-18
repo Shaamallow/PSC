@@ -3,14 +3,16 @@
 
 import gradio as gr
 import os
-from Interface.Corpus.Corpus import CorpusInterface
-from TF.corpus import Corpus
+from Interface.CorpusInterface import CorpusInterface
 
-global path_to_corpus
-path_to_corpus = "./data/corpus"
+# VARIABLES FOR THE MAIN PROGRAM
+# Update thoses to make your own architecture for project
 
-# list of Corpus and their path
-corpus_list_path = os.listdir(path_to_corpus)
+global PATH_TO_CORPUS # path to the corpus folder
+global ALL_CORPUS # list of all available corpus
+PATH_TO_CORPUS = "./data/corpus"
+ALL_CORPUS = os.listdir(PATH_TO_CORPUS)
+
 
 
 # Create a gradio app
@@ -21,7 +23,7 @@ with gr.Blocks() as demo:
         gr.Markdown("OK")
 
     with gr.Tab("Corpus"):
-        corpusInterface = CorpusInterface(corpus_list_path)
+        corpusInterface = CorpusInterface(PATH_TO_CORPUS, ALL_CORPUS)
         corpusInterface.Interface()
     
 demo.launch()
