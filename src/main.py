@@ -19,12 +19,15 @@ ALL_CORPUS = os.listdir(PATH_TO_CORPUS)
 with gr.Blocks() as demo:
     gr.Markdown("# Demo")
 
-    with gr.Tab("TEST"):
-        gr.Markdown("OK")
-
     with gr.Tab("Corpus"):
         corpusInterface = CorpusInterface(PATH_TO_CORPUS, ALL_CORPUS)
         corpusInterface.Interface()
+
+    with gr.Tab("PDF"):
+        gr.Markdown("## PDF")
+    
+    with gr.Tab("TF-IDF"):
+        gr.Markdown("## TF-IDF")
 
 if __name__ == "__main__": 
     demo.launch()
