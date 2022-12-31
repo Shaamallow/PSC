@@ -5,7 +5,7 @@ import gradio as gr
 import os
 
 # import Corpus Class from Corpus.py
-from Interface.ClassObjects.CorpusClass import Corpus
+from src.Interface.ClassObjects.CorpusClass import Corpus
 
 class CorpusInterface(object):
 
@@ -31,13 +31,15 @@ class CorpusInterface(object):
                     current_corpus = gr.Dropdown(label="Pick corpus", choices=self.corpus_list)
                     load_corpus = gr.Button(label="Load Corpus")
 
-                    load_corpus.click(self.LoadCorpus, inputs=[current_corpus], outputs=[])
-
+                    
                 with gr.Column():
                     gr.Markdown("### Size of Corpus")
                     corpus_size = gr.Number(label="Size Corpus")
             
             corpus_description = gr.Textbox(label="Description", lines=5)
+
+            # Define button behavior after all the components are created
+            load_corpus.click(self.LoadCorpus, inputs=[current_corpus], outputs=[corpus_size,corpus_description])
 
         return corpus
 
@@ -48,9 +50,13 @@ class CorpusInterface(object):
 
     def LoadCorpus(self, corpus_name):
         # Load the corpus object
+        # corpus_name is a Dropwdown object with the name of the corpus
+
         self.corpus = Corpus(self.path+'/'+corpus_name)
 
-        # TODO : add a function to update the size of the corpus
+        return [self.corpus.get_size(), self.corpus.get_description()]
+
+    
 
 
 if __name__ == "__main__":

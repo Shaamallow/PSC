@@ -3,7 +3,7 @@
 
 import gradio as gr
 import os
-from Interface.CorpusInterface import CorpusInterface
+from src.Interface.CorpusInterface import CorpusInterface
 
 # VARIABLES FOR THE MAIN PROGRAM
 # Update thoses to make your own architecture for project
@@ -17,7 +17,7 @@ ALL_CORPUS = os.listdir(PATH_TO_CORPUS)
 
 # Create a gradio app
 with gr.Blocks() as demo:
-    gr.Markdown("Demo")
+    gr.Markdown("# Demo")
 
     with gr.Tab("TEST"):
         gr.Markdown("OK")
@@ -25,5 +25,16 @@ with gr.Blocks() as demo:
     with gr.Tab("Corpus"):
         corpusInterface = CorpusInterface(PATH_TO_CORPUS, ALL_CORPUS)
         corpusInterface.Interface()
-    
-demo.launch()
+
+if __name__ == "__main__": 
+    demo.launch()
+
+
+#### LAUNCH INSTRUCTION ####
+
+# 1. Open a terminal
+# 2. Go to the root of the project
+# 3. activate the virtual environment
+# 4. run : gradio src/main.py 
+# 5. simply save the file to update the gradio app
+

@@ -14,6 +14,26 @@ class Corpus(object):
         self.docs = os.listdir(path)
         self.WF = pd.DataFrame(columns=["word"] + self.docs)
 
+    # Method to get the size of a corpus
+
+    def get_size(self):
+        # check if the corpus has a description file
+        if "description.txt" in self.docs:
+            return len(self.docs) - 1
+        else:
+            return len(self.docs)
+
+    # Method to get the description of a corpus
+
+    def get_description(self):
+        # if the corpus has a description file
+
+        if "description.txt" in self.docs:
+            with open(self.path + "/description.txt", "r") as f:
+                return f.read()
+        else:
+            return "No description available"
+
     # Method to get the text of a pdf
 
     def get_text_pdf(self, doc_path):
