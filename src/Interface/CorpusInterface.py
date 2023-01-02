@@ -40,17 +40,19 @@ class CorpusInterface(object):
                 with gr.Column():
                     gr.Markdown("### Choix Corpus")
                     current_corpus = gr.Dropdown(label="Pick corpus", choices=self.corpus_list)
-                    load_corpus = gr.Button(label="Load Corpus")
+                    load_corpus = gr.Button("Load Corpus")
 
                     
                 with gr.Column():
                     gr.Markdown("### Size of Corpus")
                     corpus_size = gr.Number(label="Size Corpus")
+                    head_corpus = gr.Button("Head")
             
             corpus_description = gr.Textbox(label="Description", lines=5)
 
             # Define button behavior after all the components are created
             load_corpus.click(self.__LoadCorpus, inputs=[current_corpus], outputs=[corpus_size,corpus_description])
+            head_corpus.click(self.__HeadCorpus, inputs=[], outputs=[corpus_description])
 
         return corpus
 
@@ -72,11 +74,16 @@ class CorpusInterface(object):
         - size of the corpus
         - description of the corpus"""
 
-        self.corpus = Corpus(self.path+'/'+corpus_name)
+        self.corpus = Corpus(self.path,corpus_name)
 
         return [self.corpus.get_size(), self.corpus.get_description()]
 
-    
+    def __HeadCorpus(self):
+        """
+        RETURN : 
+        - Head of the WF matrix"""
+
+        return(self.corpus.WF.head())
 
 
 if __name__ == "__main__":

@@ -41,13 +41,21 @@ Pour installer les dépendances, il faut lancer la commande suivante:
 
     pip3 install -r requirements.txt
 
+Attention, la librairie NTLK a besoin de télécharger sur votre ordi la liste de stopwords 
+
+Il faut lancer la commande suivante : 
+
+    python -m nltk.downloader all
+
+Plus d'[INFO](https://www.nltk.org/data.html)
+
 **Bon courage pour le code**
 
 ## Feuille de Route : 
 
 _Disclaimer : j'ai eu la flemme de crop_
 
-(Update le 29/11/2022)
+(Update feuille de route le 29/11/2022)
 
 ![Feuille de Route](./docs/Images/Webapp_1.jpg)
 ![Feuille de Route](./docs/Images/Webapp_2.jpg)
