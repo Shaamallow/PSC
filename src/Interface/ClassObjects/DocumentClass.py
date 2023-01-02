@@ -9,11 +9,11 @@ import nltk
 import pandas as pd
 
 # import corpus file 
-from Interface.ClassObjects.CorpusClass import Corpus 
+from CorpusClass import Corpus 
 
 
 
-class document(object):
+class Document(object):
 
     def __init__(self, name, corpus: Corpus) -> None:
 
@@ -30,7 +30,6 @@ class document(object):
         """
         return : dataframe of words of the document ordered by frequency
         """
-
         is_in_doc = self.WF[self.name]>0
         words = self.WF[self.name][is_in_doc]
         
@@ -46,9 +45,9 @@ class document(object):
     
 if __name__=="__main__":
     # create corpus object
-    corpus0 = Corpus("./data/corpus/corpus2")
-    corpus0.load("corpus1")
+    corpus0 = Corpus("./data/corpus", "corpus1")
+    print(corpus0.WF.head())
     # create document object
-    doc1 = document("albania-education-strategy-2004-2015.pdf", corpus0)
+    doc1 = Document("hungary_public_ed_dev_strategy_2004_en.pdf", corpus0)
     # print the words of the document
     print(doc1.get_top_words())

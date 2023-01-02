@@ -8,11 +8,12 @@ import nltk
 class Corpus(object):
 
 
-    def __init__(self, path) -> None:
+    def __init__(self, path, corpusID) -> None:
 
-        self.path = path
-        self.docs = os.listdir(path)
-        self.WF = pd.DataFrame(columns=["word"] + self.docs)
+        self.path = path+"/"+corpusID
+        self.corpusID = corpusID
+        self.docs = os.listdir(self.path)
+        self.WF = self.load()
 
     # Method to get the size of a corpus
 
@@ -129,7 +130,7 @@ class Corpus(object):
 
     # Method to load a corpus
 
-    def load(self, corpusID):
+    def load(self, new_corpus = None):
         """
         Input : ID of an existing corpus such as "corpus1"
         Change properties of the corpus object accordingly : 
@@ -137,17 +138,70 @@ class Corpus(object):
             - self.docs = os.listdir(self.path)
             - self.WF = pd.read_csv(/data/results/corpusID/WF.csv)
         """
-        self.path = "./data/corpus/" + corpusID
-        self.docs = os.listdir(self.path)
-        # import without index
-        self.WF = pd.read_csv("./data/results/" + corpusID + "/WF.csv", index_col=0 )
+        
+        # if no corpus is specified, load the WF matrix
+        if new_corpus != None:
+            self.path = self.path + "/" + new_corpus
+            self.corpusID = new_corpus
+            self.docs = os.listdir(self.path)
 
-    # Method to build a document object from a corpus
-
+        # Import WF matrix wiwth word as index
+        return pd.read_csv("data/results/" + self.corpusID + "/WF.csv", index_col=0)
 
         
     # TODO : Method to clean WF matrix (remove words too long or that appear in only one document only one time -most likely a typo/failure at import-)
     # TODO : Method to clean WF matrix by check in a dictionnary if the word is a real word
+
+    # TODO : Method to generate TF-IDF matrix
+
+    # Sim Matrix generator :
+
+    def generate_cosine_matrix(self):
+        # name of all documents in the corpus
+        documents = [doc for doc in self.docs if doc != "description.txt"]
+
+        # check if sim already exists
+        if "cosine_matrix" in os.listdir("./data/results/" + self.path.split("/")[-1]):
+            return
+
+        # Generate the cosine matrix
+        for i in range(len(documents)): 
+            docA = documents[i]
+            for j in range(i,len(documents)): 
+                docB = documents[j]
+
+                TF_IDF_A = __get_TF_IDF(docA)
+                TF_IDF_B = __get_TF_IDF(docB)
+        
+        pass
+
+    def __get_TF_IDF(self, doc):
+        """
+        Input : document name
+        return : TF-IDF vector of the document
+        """
+
+        # TODO : add check (WF matrix exists, no empty docs)
+
+        # Dictionnary, key = word, value = [TF, IDF]
+
+        # N = Number of doc in the corpus 
+        # n = number of doc where the word appears
+        # IDF = 1+log(N/n+1)
+        # TF = occurence of the word in the doc/total number of words in the doc
+        # TF-IDF = TF*IDF
+
+        TF_IDF_doc = {}
+
+        for k in range(len(self.WF["word"])):
+            
+            
+            pass
+
+            
+        
+
+        
 
     
 # - Create a corpus object
@@ -156,6 +210,6 @@ if __name__ == "__main__":
 
     # generate corpus1 WF matrix
 
-    corpus = Corpus("./data/corpus/corpus2")
-    corpus.load("corpus1")
+    corpus = Corpus("./data/corpus", "corpus1")
     print(corpus.WF.head())
+    print(corpus.WF.iloc[0,0])

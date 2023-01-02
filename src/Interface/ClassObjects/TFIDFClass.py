@@ -33,3 +33,13 @@ class TFIDF(object):
         wordsB = self.docB.get_top_words(n)
 
         return wordsA, wordsB
+
+    # Method to get the similarity between the two documents
+
+    def get_sim(self):
+        """
+        return : similarity between the two documents
+        """
+
+    
+
