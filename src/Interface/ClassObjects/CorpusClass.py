@@ -144,6 +144,14 @@ class Corpus(object):
             self.path = self.path + "/" + new_corpus
             self.corpusID = new_corpus
             self.docs = os.listdir(self.path)
+        
+        # check if corpusID folder exists in results
+        if self.corpusID not in os.listdir("./data/results"):
+            os.mkdir("./data/results/" + self.corpusID)
+        # check if WF matrix exists in /results/coprpusID
+        if "WF.csv" not in os.listdir("./data/results/" + self.corpusID):
+            self.WF = pd.DataFrame(columns=["word"] + self.docs)
+            self.save("./data/results/" + self.corpusID + "/WF.csv")
 
         # Import WF matrix wiwth word as index
         return pd.read_csv("data/results/" + self.corpusID + "/WF.csv", index_col=0)
@@ -210,6 +218,6 @@ if __name__ == "__main__":
 
     # generate corpus1 WF matrix
 
-    corpus = Corpus("./data/corpus", "corpus1")
+    corpus = Corpus("./data/corpus", "corpus3")
+    #corpus.generate_WF()
     print(corpus.WF.head())
-    print(corpus.WF.iloc[0,0])
