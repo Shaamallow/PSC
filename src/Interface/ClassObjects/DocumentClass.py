@@ -12,7 +12,6 @@ import pandas as pd
 from CorpusClass import Corpus 
 
 
-
 class Document(object):
 
     def __init__(self, name, corpus: Corpus) -> None:
@@ -45,9 +44,9 @@ class Document(object):
     
 if __name__=="__main__":
     # create corpus object
-    corpus0 = Corpus("./data/corpus", "corpus1")
+    corpus0 = Corpus("./data/corpus", "corpus2")
     print(corpus0.WF.head())
     # create document object
-    doc1 = Document("hungary_public_ed_dev_strategy_2004_en.pdf", corpus0)
+    doc1 = Document("armenia_educational_national_plan.pdf", corpus0)
     # print the words of the document
     print(doc1.get_top_words())
