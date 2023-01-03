@@ -12,24 +12,29 @@ class Corpus(object):
 
         self.path = path+"/"+corpusID
         self.corpusID = corpusID
-        self.docs = os.listdir(self.path)
+
+        # Description of the corpus TODO : Proper Handling (generation + load)
+        self.description = False
+        documents = os.listdir(self.path)
+        if "description.txt" in documents:
+            documents.remove("description.txt")
+            self.description=True
+
+        self.docs = documents
         self.WF = self.load()
 
     # Method to get the size of a corpus
 
     def get_size(self):
         # check if the corpus has a description file
-        if "description.txt" in self.docs:
-            return len(self.docs) - 1
-        else:
-            return len(self.docs)
+        return(len(self.docs))
 
     # Method to get the description of a corpus
 
     def get_description(self):
         # if the corpus has a description file
 
-        if "description.txt" in self.docs:
+        if self.description:
             with open(self.path + "/description.txt", "r") as f:
                 return f.read()
         else:
@@ -90,11 +95,11 @@ class Corpus(object):
 
                 print("Processing document " + str(i) + "/" + str(len(self.docs)) + " | word " + str(j) + "/" + str(len(words)), end="\r")
 
-                if word in self.WF["word"].values:
-                    self.WF.loc[self.WF["word"] == word, doc] += 1
+                if word in self.WF.index:
+                    self.WF.loc[word][doc] += 1
                 else:
-                    self.WF.loc[self.WF.shape[0]] = [word] + [0] * (self.WF.shape[1] - 1)
-                    self.WF.loc[self.WF["word"] == word, doc] += 1
+                    self.WF.loc[word] = [0] * self.WF.shape[1]
+                    self.WF.loc[word][doc] += 1
                 j += 1
             i += 1
 
@@ -125,8 +130,10 @@ class Corpus(object):
     
     # Method to save the corpus
 
-    def save(self, path):
-        self.WF.to_csv(path, index=False)
+    def save(self, path=None):
+        if path==None:
+            path = "./data/results/" + self.corpusID + "/WF.csv"
+        self.WF.to_csv(path, index=True)
 
     # Method to load a corpus
 
@@ -150,7 +157,7 @@ class Corpus(object):
             os.mkdir("./data/results/" + self.corpusID)
         # check if WF matrix exists in /results/coprpusID
         if "WF.csv" not in os.listdir("./data/results/" + self.corpusID):
-            self.WF = pd.DataFrame(columns=["word"] + self.docs)
+            self.WF = pd.DataFrame(columns=self.docs)
             self.save("./data/results/" + self.corpusID + "/WF.csv")
 
         # Import WF matrix wiwth word as index
@@ -208,16 +215,43 @@ class Corpus(object):
 
             
         
+# Test manipulation Dataframe
 
+def test0():
+    # generate corpus2 WF matrix
+
+    corpus = Corpus("./data/corpus", "corpus2")
+    corpus.generate_WF()
+    print(corpus.WF.head())
+    corpus.save()
+
+def test1():
+    WF = pd.DataFrame(columns=["doc1", "doc2"])
+    print(WF)
+    WF.to_csv("test.csv", index=True)
+
+    WF.loc["word1"] = [1,1]
+    WF.loc["word2"] = [1,1]
+
+    print(WF)
+
+    print("-----")
+
+    if 'word3' in WF.index:
+        WF.loc['word3']["doc2"] = 2
+    else:
+        WF.loc['word3'] = [1,1]
+    
+    print(WF)
+
+    if 'word2' in WF.index:
+        WF.loc['word2']["doc2"] = 20
+
+    print(WF)
         
-
     
 # - Create a corpus object
 
 if __name__ == "__main__":
 
-    # generate corpus1 WF matrix
-
-    corpus = Corpus("./data/corpus", "corpus3")
-    #corpus.generate_WF()
-    print(corpus.WF.head())
+    test1()
