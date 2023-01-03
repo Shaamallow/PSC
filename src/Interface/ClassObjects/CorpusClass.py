@@ -3,6 +3,9 @@ import pandas as pd
 import pdfplumber
 import re
 import nltk
+import numpy as np
+
+from math import log
 
 
 class Corpus(object):
@@ -106,6 +109,8 @@ class Corpus(object):
 
     # Method to add document to corpus 
 
+    # TODO FIX ADD DOC
+
     def add_doc(self, doc_path):
         doc = doc_path.split("/")[-1]
         self.docs.append(doc)
@@ -172,25 +177,52 @@ class Corpus(object):
     # Sim Matrix generator :
 
     def generate_cosine_matrix(self):
-        # name of all documents in the corpus
-        documents = [doc for doc in self.docs if doc != "description.txt"]
 
         # check if sim already exists
         if "cosine_matrix" in os.listdir("./data/results/" + self.path.split("/")[-1]):
             return
 
+        M = np.zeros((len(self.docs),len(self.docs)))
+        M = pd.DataFrame(M, columns=self.docs, index=self.docs)
+
         # Generate the cosine matrix
-        for i in range(len(documents)): 
-            docA = documents[i]
-            for j in range(i,len(documents)): 
-                docB = documents[j]
+        for i in range(len(self.docs)): 
+            docA = self.docs[i]
+            
+            # Sim matrix is symetric, so we only need to compute the upper triangle
+            for j in range(i+1,len(self.docs)): 
+                docB = self.docs[j]
+                print(docA)
+                print(docB)
+                print("")
 
-                TF_IDF_A = __get_TF_IDF(docA)
-                TF_IDF_B = __get_TF_IDF(docB)
+                TF_IDF_A = self.get_TF_IDF(docA)
+                TF_IDF_B = self.get_TF_IDF(docB)
+
+                # Dot product of TF-IDF vectors
+
+                vecA = {word: TF_IDF_A[word][0]*TF_IDF_A[word][1] for word in TF_IDF_A}
+                vecB = {word: TF_IDF_B[word][0]*TF_IDF_B[word][1] for word in TF_IDF_B}
+
+                # List of Words
+                words = list(set(vecA.keys()).union(set(vecB.keys())))
+
+                # Dot product of TF-IDF vectors
+                dot_product = sum([vecA.get(word, 0) * vecB.get(word, 0) for word in words])
+
+                # Norm of TF-IDF vectors
+                normA = sum([vecA[word]**2 for word in vecA])**0.5
+                normB = sum([vecB[word]**2 for word in vecA])**0.5
+
+                # Cosine similarity
+                cosine_similarity = dot_product / (normA * normB)
+
+                M.loc[docA, docB] = cosine_similarity
+        return M
+
         
-        pass
 
-    def __get_TF_IDF(self, doc):
+    def get_TF_IDF(self, doc):
         """
         Input : document name
         return : TF-IDF vector of the document
@@ -200,20 +232,30 @@ class Corpus(object):
 
         # Dictionnary, key = word, value = [TF, IDF]
 
-        # N = Number of doc in the corpus 
+        # N = Number of word in doc
+        # l = Number of docs in corpus
         # n = number of doc where the word appears
-        # IDF = 1+log(N/n+1)
+        # IDF = 1+log(l/n+1)
         # TF = occurence of the word in the doc/total number of words in the doc
         # TF-IDF = TF*IDF
 
+        def IDF(l,n):
+            return 1+log(l/n+1)
+
         TF_IDF_doc = {}
 
-        for k in range(len(self.WF["word"])):
-            
-            
-            pass
+        # number of words in document
+        N = self.WF[doc].sum(axis=0)
 
+        for word in self.WF.index:
+            # count nb of doc where the word appears
+            n = (self.WF.loc[word]>0).sum(axis=0)
             
+            # add key to dictionnary
+            TF_IDF_doc[word] = [self.WF.loc[word][doc]/N,IDF(len(self.docs), n)]
+
+        return(TF_IDF_doc)
+                   
         
 # Test manipulation Dataframe
 
@@ -221,9 +263,11 @@ def test0():
     # generate corpus2 WF matrix
 
     corpus = Corpus("./data/corpus", "corpus2")
-    corpus.generate_WF()
     print(corpus.WF.head())
-    corpus.save()
+    #corpus.generate_WF()
+    #corpus.save()
+    print("------")
+    print(corpus.generate_cosine_matrix())
 
 def test1():
     WF = pd.DataFrame(columns=["doc1", "doc2"])
@@ -249,9 +293,8 @@ def test1():
 
     print(WF)
         
-    
 # - Create a corpus object
 
 if __name__ == "__main__":
 
-    test1()
+    test0()
