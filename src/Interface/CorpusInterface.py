@@ -32,7 +32,7 @@ class CorpusInterface(object):
         """
         Return a gradio component for the corpus"""
         with gr.Blocks() as corpus:
-            gr.Markdown("## Corpus Loader")
+            gr.Markdown("## Corpus Details")
 
             # 2 rows
             with gr.Row():
@@ -51,7 +51,7 @@ class CorpusInterface(object):
             corpus_description = gr.Textbox(label="Description", lines=5)
 
             # Define button behavior after all the components are created
-            load_corpus.click(self.__LoadCorpus, inputs=[current_corpus], outputs=[corpus_size,corpus_description])
+            load_corpus.click(self.LoadCorpus, inputs=[current_corpus], outputs=[corpus_size,corpus_description])
             head_corpus.click(self.__HeadCorpus, inputs=[], outputs=[corpus_description])
 
         return corpus
@@ -62,7 +62,7 @@ class CorpusInterface(object):
         self.corpus = corpus
 
     # Modify the function with the elemlents to display in the gradio app
-    def __LoadCorpus(self, corpus_name):
+    def LoadCorpus(self, corpus_name):
         """
         Call by the gradio button, MODIFY the current corpus object
         Return the corresponding useful elements to display in the gradio app

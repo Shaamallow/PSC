@@ -96,7 +96,7 @@ class Corpus(object):
             j = 0
             for word in words:
 
-                print("Processing document " + str(i) + "/" + str(len(self.docs)) + " | word " + str(j) + "/" + str(len(words)), end="\r")
+                print("Processing document " + str(i+1) + "/" + str(len(self.docs)) + " | word " + str(j+1) + "/" + str(len(words)), end="\r")
 
                 if word in self.WF.index:
                     self.WF.loc[word][doc] += 1
@@ -255,6 +255,17 @@ class Corpus(object):
             TF_IDF_doc[word] = [self.WF.loc[word][doc]/N,IDF(len(self.docs), n)]
 
         return(TF_IDF_doc)
+    
+    # Method to get the sim from the sim matrix
+    def get_sim(self, docA, docB):
+        """return the cosine similarity between docA and docB
+        """
+        # TODO : add check (sim matrix exists)
+        # TODO : load sim matrix with load function 
+
+        self.sim_matrix = pd.read_csv("data/results/" + self.corpusID + "/cosine_matrix.csv", index_col=0)
+        # Matrix is simetric, so we only need to check one value
+        return max(self.sim_matrix.loc[docA, docB], self.sim_matrix.loc[docB, docA])
                    
         
 # Test manipulation Dataframe
@@ -267,7 +278,10 @@ def test0():
     #corpus.generate_WF()
     #corpus.save()
     print("------")
-    print(corpus.generate_cosine_matrix())
+    SIM = corpus.generate_cosine_matrix()
+    SIM.to_csv("data/results/corpus2/cosine_matrix.csv")
+    print(SIM)
+
 
 def test1():
     WF = pd.DataFrame(columns=["doc1", "doc2"])

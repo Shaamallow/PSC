@@ -4,6 +4,7 @@
 import gradio as gr
 import os
 from src.Interface.CorpusInterface import CorpusInterface
+from src.Interface.TF_IDFInterface import TFInterface
 
 # VARIABLES FOR THE MAIN PROGRAM
 # Update thoses to make your own architecture for project
@@ -21,13 +22,17 @@ with gr.Blocks() as demo:
 
     with gr.Tab("Corpus"):
         corpusInterface = CorpusInterface(PATH_TO_CORPUS, ALL_CORPUS)
-        corpusInterface.Interface()
+        corpusDisplay = corpusInterface.Interface()
+        corpusInterface.LoadCorpus("corpus2")
 
     with gr.Tab("PDF"):
         gr.Markdown("## PDF")
     
+    # TODO : Add loader for the Corpus object (create a method in the CorpusInterface class)
     with gr.Tab("TF-IDF"):
-        gr.Markdown("## TF-IDF")
+        tfInterface = TFInterface(PATH_TO_CORPUS, corpusInterface.corpus)
+        tfInterface.Interface()
+
 
 if __name__ == "__main__": 
     demo.launch()

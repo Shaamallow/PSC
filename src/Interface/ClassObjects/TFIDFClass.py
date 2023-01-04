@@ -1,9 +1,7 @@
 import os
-import pandas as pd
-import pdfplumber
-import re
-import nltk
 
+from src.Interface.ClassObjects.CorpusClass import Corpus
+from src.Interface.ClassObjects.DocumentClass import Document
 class TFIDF(object):
     """TF-IDF Class
     
@@ -40,6 +38,24 @@ class TFIDF(object):
         """
         return : similarity between the two documents
         """
+        SIM = self.corpus.get_sim(self.docA.name, self.docB.name)
+        SIM = int(SIM*100)
+        return SIM
 
     
 
+if __name__ == "__main__":
+    # create corpus object
+    corpus0 = Corpus("./data/corpus", "corpus2")
+    print(corpus0.WF.head())
+    # create document object
+    doc1 = Document("docA.pdf", corpus0)
+    doc2 = Document("docB.pdf", corpus0)
+    # print the words of the document
+    print(doc1.get_top_words())
+    # create TFIDF object
+    tfidf = TFIDF(corpus0, doc1, doc2)
+    # print the words of the document
+    print(tfidf.get_words())
+    # print the similarity between the two documents
+    print(tfidf.get_sim())
