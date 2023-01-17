@@ -35,6 +35,8 @@ class TFInterface(object):
         with gr.Blocks() as TFIDF:
             gr.Markdown("## TF-IDF")
 
+            gr.Dropdown(label="Pick Corpus", choices=None)
+
             # 3 Row
 
             with gr.Row():
@@ -47,21 +49,43 @@ class TFInterface(object):
                 with gr.Row():
                     with gr.Column():
                         gr.Markdown("")
-                        gr_sim_button = gr.Button("Similarity")
-                        gr_similarity = gr.Number(label="Similarity")
+                        gr_sim_button = gr.Button("Stats")
+                        gr_similarity = gr.Number(label="Similarity %")
 
                 with gr.Column():
                     gr.Markdown("### DocB")
                     gr_docB = gr.Dropdown(label="Pick DocB", choices=self.corpus.docs)
 
+            with gr.Row():
+                with gr.Column():
+                    gr.Markdown("### Top Words DocA")
+                    gr_top_wordsA = gr.Textbox(label="Top Words DocA", lines=5)
+                with gr.Column():
+                    gr.Markdown("### Top Words DocB")
+                    gr_top_wordsB = gr.Textbox(label="Top Words DocB", lines=5)
+
             # Define button behavior after all the components are created
-            gr_sim_button.click(self.getSimilarity, inputs=[gr_docA,gr_docB], outputs=[gr_similarity])
+            gr_sim_button.click(self.Load, inputs=[gr_docA,gr_docB], outputs=[gr_similarity,gr_top_wordsA,gr_top_wordsB])
 
         
         return TFIDF
 
-    def getSimilarity(self, docA, docB):
+    def Load(self, docA, docB):
         self.docA = Document(docA, self.corpus)
         self.docB = Document(docB, self.corpus)
         self.TFIDF = TFIDF(self.corpus, self.docA, self.docB)
-        return self.TFIDF.get_sim()
+
+        topA = self.docA.get_top_words()
+        topB = self.docB.get_top_words()
+
+        topA_formatted = ""
+        topB_formatted = ""
+
+        for word in topA.index:
+            topA_formatted += "- " + word + " " + str(topA.loc[word]) + "\n"
+        
+        for word in topB.index:
+            topB_formatted += "- " + word + " " + str(topB.loc[word]) + "\n"
+
+
+        return [self.TFIDF.get_sim(), topA_formatted, topB_formatted]

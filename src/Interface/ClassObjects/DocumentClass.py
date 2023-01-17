@@ -11,6 +11,8 @@ import pandas as pd
 # import corpus file 
 from src.Interface.ClassObjects.CorpusClass import Corpus 
 
+# Comment/Uncomment to test the file alone
+#from CorpusClass import Corpus
 
 class Document(object):
 
