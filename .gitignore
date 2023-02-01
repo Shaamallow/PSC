@@ -4,4 +4,5 @@ env
 # ignore all __pycache__ folders
 __pycache__
 
-# i
+# ignore pre-trained models 
+GoogleNews-vectors-negative300.bin
