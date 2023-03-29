@@ -27,7 +27,7 @@ import gensim.downloader as api
 
 # EXECUTE FROM THE ROOT OF THE PROJECT 
 path = os.getcwd()
-ID = 2 # change this to the ID of the corpus you want to clean
+ID = 3 # change this to the ID of the corpus you want to clean
 path = path+"/data/"+'corpus/corpus'+str(ID)
 
 # Get all the name of the files in the corpus with .pdf extension
@@ -99,10 +99,12 @@ def pdf_import(document_path :str):
     - size : number of pages in the pdf
     """
 
+    print("Loading pdf...", end='\r')
     with pdfplumber.open(document_path) as pdf:
         text = ""
         for page in pdf.pages:
             text += page.extract_text()
+    sys.stdout.write("\033[K")
 
     return text, len(pdf.pages)
 
