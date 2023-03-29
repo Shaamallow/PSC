@@ -94,7 +94,7 @@ for doc in tfidf[bow_corpus]:
     sims = index[doc]
     l = order_tuples_by_tfidf(enumerate(sims))
     print('Doc : ', files[l[0][0]])
-    for k in range(1,6):
+    for k in range(1,15):
         value = str(int(l[k][1]*100)) + '%'
         print(files[l[k][0]], colored(value,'green'))
     print()

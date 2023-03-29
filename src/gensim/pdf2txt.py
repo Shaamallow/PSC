@@ -16,8 +16,12 @@ import re
 import nltk
 import pdfplumber
 import pandas as pd
+import time
+import sys
 
 from termcolor import colored
+
+import gensim.downloader as api
 
 # Path variable 
 
@@ -30,6 +34,19 @@ path = path+"/data/"+'corpus/corpus'+str(ID)
 
 doc_names = os.listdir(path)
 doc_names = [doc for doc in doc_names if doc[-4:] == '.pdf']
+
+# Glove model
+
+print("Loading Glove model...")
+t1 = time.time()
+dic = api.load('glove-twitter-25')
+t2 = time.time()
+print("Done.", len(dic), " words loaded!")
+print("Time : ", t2-t1, "s")
+
+
+dic = dic.index_to_key
+
 
 # Function to clean the text of a pdf file
 
@@ -58,20 +75,20 @@ def clean_text(text : str):
     words = []
     i = 0
     for word in text:
-        print(str(i+1),'/', len(text), word, end=' ')
-        if word not in nltk.corpus.words.words('en'):
+        print('Processing ', str(i+1),'/', len(text), ' : ', word, end=' ')
+        if word not in dic:
             removed.append(word)
-            print(colored('removed', 'red'))
+            print(colored('removed', 'red'), end='\r')
         else : 
             words.append(word)
-            print(colored('kept', 'green'))
+            print(colored('kept', 'green'), end='\r')
         i += 1 
+        sys.stdout.write("\033[K")
 
-    print("Removed words : ", len(removed))
     return words, removed
 
 def pdf_import(document_path :str):
-    """
+    """print('', end='\r')
     Open a pdf with pdf plumber and return the text of the pdf
 
     # Input :
@@ -79,6 +96,7 @@ def pdf_import(document_path :str):
 
     # Ouput : 
     - text : list of words in the pdf
+    - size : number of pages in the pdf
     """
 
     with pdfplumber.open(document_path) as pdf:
@@ -86,7 +104,7 @@ def pdf_import(document_path :str):
         for page in pdf.pages:
             text += page.extract_text()
 
-    return text
+    return text, len(pdf.pages)
 
 def clean_folder(path : str):
     """
@@ -120,21 +138,36 @@ def save_txt(text : str, path : str, name : str = None):
     - None
     """
 
-    pass
+    with open(path+'/'+name+'.txt', 'w') as f:
+        f.write(text)
 
 #### TEST ####
 
+# Construct some stats for the docs
+
+n = len(doc_names)
+
+stats = pd.DataFrame(columns=['name','nb_pages', 'size', 'size_removed', 'size_removed_percent'])
+path_save = path[:-1]+'4'
+
+
 # Apply to corpus 2
 
-text = pdf_import(path+'/'+doc_names[2])
-print(doc_names[2])
-#text = text[:1000]
-#print(text)
-#print(type(text))
-text, removed = clean_text(text)
+for i in range(n):
+    print('Document ', i+1, '/', n, " : ", doc_names[i])
+    text,npages = pdf_import(path+'/'+doc_names[i])
+    text, removed = clean_text(text)
+    stats.loc[i] = [doc_names[i], npages, len(text), len(removed), round(100*len(removed)/(len(text)+len(removed)),2)]
+    print("Done : Saving...")
+    text = ' '.join(text)
+    removed = '\n'.join(removed)
+    save_txt(text, path_save, doc_names[i][:-4])
+    save_txt(removed, path_save, doc_names[i][:-4]+'_removed')
+    sys.stdout.write("\033[F") # Cursor up one line
+    sys.stdout.write("\033[K") # Clear to the end of line
+    sys.stdout.write("\033[F") # Cursor up one line
+    sys.stdout.write("\033[K") # Clear to the end of line
 
-print(text)
+# Save stats in csv file
 
-print()
-
-print(removed)
+stats.to_csv(path_save+'/stats.csv')
