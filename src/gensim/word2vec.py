@@ -12,6 +12,14 @@ import nltk as sl
 import os
 from matplotlib import pyplot as plt
 import gensim.downloader as api
+import time
+import pandas as pd
+import gensim.models
+import sys
+
+from termcolor import colored
+
+### GLOBAL VARIABLES ###
 
 path = os.getcwd()
 corpus_path = '/data/corpus/corpus4'
@@ -19,6 +27,7 @@ corpus_path = '/data/corpus/corpus4'
 
 files = os.listdir(path+corpus_path)
 
+### IMPORTATION ###
 
 # Define Methods to load files and clean text
 
@@ -51,43 +60,9 @@ class MyCorpus(object):
             
             yield text
             
-# Load corpus
-
-files = get_txt_from_folder(files)
-
-corpus = MyCorpus()
 
 
-
-# Create and Train Model
-import gensim.models
-# Shit ton of parameters to play with
-# min_count, vector_size ... (https://radimrehurek.com/gensim/auto_examples/tutorials/run_word2vec.html)
-#model = gensim.models.Word2Vec(sentences=corpus)
-
-# LOAD THE MODEL 
-
-model = gensim.models.Word2Vec.load(path+'/src/gensim/models/w2v')
-
-# Version with glove but only words in corpus 
-
-print("Loading model...")
-glove = api.load("glove-twitter-25")
-print("Done")
-
-# Construct manualy the array of words in the corpus using the glove model 
-
-vectors = []
-noms = []
-
-for doc in corpus:
-    for word in doc:
-        if word in glove and not word in noms:
-            vectors.append(glove[word])
-            noms.append(word)
-
-
-#### PCA
+#### REDUCE THE DIMENSION
 
 # reduce dimensions for plotting
 
@@ -103,106 +78,130 @@ def reduce_dimensions(wv, n=2):
     # extract the words & their vectors, as numpy arrays
     vectors = np.asarray(wv.vectors)
     labels = np.asarray(wv.index_to_key)  # fixed-width numpy strings
-    print(vectors)
-    print(labels)
+    #print(vectors)
+    #print(labels)
 
+    print("1st method starting...")
+    t1 = time.time()
     # reduce using t-SNE
     vectors = TSNE(n_components=num_dimensions).fit_transform(vectors)
+    t2 = time.time()
 
+    print("Time to reduce dimension : ", end='')
+    print(colored(t2-t1, 'red'))
+
+    print("### END ###")
     # extract the coords of the vectors
 
     return ([[v[i] for v in vectors] for i in range(num_dimensions)], labels)
 
-def reduce_dimensions2(vectors, labels, n=2):
+def reduce_dimensions2(vectors, labels, **kwargs):
+    """
+    Reduce the dimension for plotting
+
+    ## Parameters : 
+    - vectors : list of vectors
+    - labels : list of labels
+    - n : Desired dimension (default 2)
+    - method : Method to reduce dimension (default tsne)
+
+    ## Output : 
+
+    - coords : matrix of size n x len(vectors) with the coordinates of the vectors
+    - labels : list of labels 
+    
+    """
+
+    if 'n' in kwargs:
+        n = kwargs['n']
+    else:
+        n = 2
+    
+    if 'method' in kwargs:
+        if kwargs['method'] not in ['tsne', 'pca', 'svd']:
+            raise ValueError('method must be one of "tsne", "pca", "svd"')
+        method = kwargs['method']
+    else:
+        method = 'tsne'
     
     num_dimensions = n  # final num dimensions (2D, 3D, etc)
 
     vectors = np.asarray(vectors)
     labels = np.asarray(labels)
 
-    print(vectors)
-    print(labels)
+    # Benchmark the differetns process :
 
+    print("Starting the dimension reduction process...")
+    t1 = time.time()
     # reduce using t-SNE
-    vectors = TSNE(n_components=num_dimensions).fit_transform(vectors)
+    if method == 'tsne':
+        vectors = TSNE(n_components=num_dimensions).fit_transform(vectors)
+    elif method == 'pca':
+        vectors = IncrementalPCA(n_components=num_dimensions).fit_transform(vectors)
 
+    t2 = time.time()
+    print("Time to reduce dimension : ", end='')
+    print(colored(t2-t1, 'red'))
     # extract the coords of the vectors
 
     return ([[v[i] for v in vectors] for i in range(num_dimensions)], labels)
 
-# plot the data
+#### MAIN ####
 
-def plot_with_matplotlib(x_vals, y_vals, labels):
-    
+if __name__ == '__main__':
 
-    random.seed(0)
+    # Get args from command line
 
-    plt.figure(figsize=(12, 12))
-    plt.scatter(x_vals, y_vals)
+    dimension = 2
+    if len(sys.argv) > 1:
+        dimension = int(sys.argv[1])
 
-    #
-    # Label randomly subsampled 25 data points
-    #
-    indices = list(range(len(labels)))
-    selected_indices = random.sample(indices, 25)
-    for i in selected_indices:
-        plt.annotate(labels[i], (x_vals[i], y_vals[i]))
+    ### PROCESSING
 
+    files = get_txt_from_folder(files)
 
-coords, labels = reduce_dimensions(model.wv, 3)
-coords, labels = reduce_dimensions2(vectors, noms, 3)
+    corpus = MyCorpus()
 
-x_vals = coords[0]
-y_vals = coords[1]
-# Don't forget to comment to 2D/3D plot
-z_vals = coords[2]
+    # Shit ton of parameters to play with
+    # min_count, vector_size ... (https://radimrehurek.com/gensim/auto_examples/tutorials/run_word2vec.html)
+    #model = gensim.models.Word2Vec(sentences=corpus)
 
-print(len(labels))
-print(len(coords[0]))
-print(len(vectors))
-print(len(noms))
-# 3D plot
+    # LOAD THE MODEL 
 
-from mpl_toolkits.mplot3d import Axes3D
+    model = gensim.models.Word2Vec.load(path+'/src/gensim/models/w2v')
 
-def plot_with_matplotlib_3d(x_vals, y_vals, z_vals, labels):
-        
-    
-        random.seed(0)
-    
-        fig = plt.figure(figsize=(12, 12))
-        ax = fig.add_subplot(111, projection='3d')
-        ax.scatter(x_vals, y_vals, z_vals)
-    
-        #
-        # Label randomly subsampled 25 data points
-        #
-        indices = list(range(len(labels)))
-        selected_indices = random.sample(indices, 25)
-        for i in selected_indices:
-            ax.text(x_vals[i], y_vals[i], z_vals[i], labels[i])
-                    
-        plt.show()
+    # Version with glove but only words in corpus 
+
+    print("\nLoading model...")
+    glove = api.load("glove-twitter-25")
+    print("Done\n")
+
+    # Construct manualy the array of words in the corpus using the glove model 
+
+    vectors = []
+    noms = []
+
+    for doc in corpus:
+        for word in doc:
+            if word in glove and not word in noms:
+                vectors.append(glove[word])
+                noms.append(word)
+
+    coords, labels = reduce_dimensions2(vectors, noms, method='tsne', n=dimension)
 
 
-### 2D plot
+    print("\nSaving the data...")
+    df = pd.DataFrame(coords)
+    df = df.transpose()
+    if dimension == 2:
+        name = 'coords2D.csv'
+        df.columns = ['x', 'y']
+    elif dimension == 3:
+        name = 'coords3D.csv'
+        df.columns = ['x', 'y', 'z']
 
-#plot_with_matplotlib(x_vals, y_vals, labels)
+    df['label'] = labels
 
-
-### 3D plot
-
-#plot_with_matplotlib_3d(x_vals, y_vals, z_vals, labels)
-
-# Save coords and label 
-
-import pandas as pd
-
-df = pd.DataFrame(coords)
-df = df.transpose()
-#df.columns = ['x', 'y']
-df.columns = ['x', 'y', 'z']
-df['label'] = labels
-
-#df.to_csv(path+'/src/gensim/models/corpus4/coords2D.csv', index=False)
-df.to_csv(path+'/src/gensim/models/glove/coords3D.csv', index=False)
+    #df.to_csv(path+'/src/gensim/models/corpus4/coords2D.csv', index=False)
+    df.to_csv(path+'/src/gensim/models/test/'+name, index=False)
+    print("Done")
