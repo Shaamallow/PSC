@@ -11,9 +11,10 @@ import numpy as np
 import nltk as sl
 import os
 from matplotlib import pyplot as plt
+import gensim.downloader as api
 
 path = os.getcwd()
-corpus_path = '/data/corpus/corpus1'
+corpus_path = '/data/corpus/corpus4'
 
 
 files = os.listdir(path+corpus_path)
@@ -43,6 +44,10 @@ class MyCorpus(object):
 
             # lower case
             text = text.lower()
+
+            # remove stop words
+            stop_words = sl.corpus.stopwords.words('english')
+            text = [w for w in text.split() if not w in stop_words]
             
             yield text
             
@@ -64,6 +69,24 @@ import gensim.models
 
 model = gensim.models.Word2Vec.load(path+'/src/gensim/models/w2v')
 
+# Version with glove but only words in corpus 
+
+print("Loading model...")
+glove = api.load("glove-twitter-25")
+print("Done")
+
+# Construct manualy the array of words in the corpus using the glove model 
+
+vectors = []
+noms = []
+
+for doc in corpus:
+    for word in doc:
+        if word in glove and not word in noms:
+            vectors.append(glove[word])
+            noms.append(word)
+
+
 #### PCA
 
 # reduce dimensions for plotting
@@ -80,6 +103,8 @@ def reduce_dimensions(wv, n=2):
     # extract the words & their vectors, as numpy arrays
     vectors = np.asarray(wv.vectors)
     labels = np.asarray(wv.index_to_key)  # fixed-width numpy strings
+    print(vectors)
+    print(labels)
 
     # reduce using t-SNE
     vectors = TSNE(n_components=num_dimensions).fit_transform(vectors)
@@ -88,7 +113,22 @@ def reduce_dimensions(wv, n=2):
 
     return ([[v[i] for v in vectors] for i in range(num_dimensions)], labels)
 
+def reduce_dimensions2(vectors, labels, n=2):
+    
+    num_dimensions = n  # final num dimensions (2D, 3D, etc)
 
+    vectors = np.asarray(vectors)
+    labels = np.asarray(labels)
+
+    print(vectors)
+    print(labels)
+
+    # reduce using t-SNE
+    vectors = TSNE(n_components=num_dimensions).fit_transform(vectors)
+
+    # extract the coords of the vectors
+
+    return ([[v[i] for v in vectors] for i in range(num_dimensions)], labels)
 
 # plot the data
 
@@ -109,14 +149,18 @@ def plot_with_matplotlib(x_vals, y_vals, labels):
         plt.annotate(labels[i], (x_vals[i], y_vals[i]))
 
 
-coords, labels = reduce_dimensions(model.wv, 2)
+coords, labels = reduce_dimensions(model.wv, 3)
+coords, labels = reduce_dimensions2(vectors, noms, 3)
 
 x_vals = coords[0]
 y_vals = coords[1]
 # Don't forget to comment to 2D/3D plot
-#z_vals = coords[2]
+z_vals = coords[2]
 
-
+print(len(labels))
+print(len(coords[0]))
+print(len(vectors))
+print(len(noms))
 # 3D plot
 
 from mpl_toolkits.mplot3d import Axes3D
@@ -156,7 +200,9 @@ import pandas as pd
 
 df = pd.DataFrame(coords)
 df = df.transpose()
-df.columns = ['x', 'y']
+#df.columns = ['x', 'y']
+df.columns = ['x', 'y', 'z']
 df['label'] = labels
 
-df.to_csv(path+'/src/gensim/models/coords2D.csv', index=False)
+#df.to_csv(path+'/src/gensim/models/corpus4/coords2D.csv', index=False)
+df.to_csv(path+'/src/gensim/models/glove/coords3D.csv', index=False)

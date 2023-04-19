@@ -5,15 +5,17 @@ import os
 import random
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
+from sklearn.cluster import DBSCAN
+import numpy as np
 
 path = os.getcwd()
 path_model = path+"/src/gensim/models"
 
-df = pd.read_csv(path_model+"/coords2D.csv")
+df = pd.read_csv(path_model+"/coords.csv")
 
 x_vals = df['x']
 y_vals = df['y']
-#z_vals = df['z']
+z_vals = df['z']
 
 labels = df['label']
 
@@ -40,7 +42,7 @@ def plot_with_matplotlib_3d(x_vals, y_vals, z_vals, labels):
 
 
 
-def plot_embeddings_cluster(x_vals, y_vals, z_vals, words, n = 6):
+def plot_embeddings_cluster(x_vals, y_vals, z_vals, words, method = 'kmeans', n=6):
     '''
     Plot in a 2D-graph the words vectors, highlighting a number n of clusters. We are using the method k-means.
 
@@ -49,7 +51,11 @@ def plot_embeddings_cluster(x_vals, y_vals, z_vals, words, n = 6):
         word2ind: dictionary mapping each word to its row number in M_reduced 
         words: array of the words vectors we are plotting
     '''
-    clf = KMeans(n_clusters= n) # Modify here the number of clusters
+    if method == 'kmeans':
+        clf = KMeans(n_clusters= n)
+    if method == 'dbscan':
+        clf = DBSCAN(eps=0.3, min_samples=10)
+    #clf = KMeans(n_clusters= n) # Modify here the number of clusters
     X = x_vals
     Y = y_vals
     Z = z_vals
@@ -58,6 +64,7 @@ def plot_embeddings_cluster(x_vals, y_vals, z_vals, words, n = 6):
     df = pd.DataFrame(data = d)
     clf.fit(df)
     labels = clf.labels_
+    print(labels)
     # Generate n random colors
 
     #colors = [np.random.rand(3,) for i in range(n)]
@@ -156,7 +163,39 @@ def elbow_method2(x_vals, y_vals, words, max_n = 10):
 
     plt.show()
 
-plot_embeddings_cluster2(x_vals, y_vals, labels, n = 4)
+#plot_embeddings_cluster2(x_vals, y_vals, labels, n = 4)
 #elbow_method2(x_vals, y_vals, labels, max_n = 15)
 #elbow_method(x_vals, y_vals, z_vals, labels, max_n = 15)
 #plot_embeddings_cluster(x_vals, y_vals, z_vals, labels, n = 7)
+
+### Print the words of each cluster
+
+def print_cluster_words(x_vals, y_vals, z_vals, words, n = 6):
+    '''
+    Print the words of each cluster
+
+    ## Params:
+        
+    '''
+
+    clf = KMeans(n_clusters= n) # Modify here the number of clusters
+    X = x_vals
+    Y = y_vals
+    Z = z_vals
+    
+    d= {'X' : X, 'Y' : Y, 'Z' : Z}
+    df = pd.DataFrame(data = d)
+    clf.fit(df)
+    labels = clf.labels_
+
+    # Print 15 random words of each cluster
+    for i in range(n):
+        indices = np.where(labels == i)[0]
+        selected_indices = random.sample(list(indices), 15)
+        print('Cluster', i)
+        for j in selected_indices:
+            print(words[j])
+        print('')
+    
+print_cluster_words(x_vals, y_vals, z_vals, labels, n = 7)
+plot_embeddings_cluster(x_vals, y_vals, z_vals, labels,method = 'dbscan')
