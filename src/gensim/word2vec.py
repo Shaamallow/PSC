@@ -168,7 +168,7 @@ if __name__ == '__main__':
 
     # LOAD THE MODEL 
 
-    model = gensim.models.Word2Vec.load(path+'/src/gensim/models/w2v')
+    #model = gensim.models.Word2Vec.load(path+'/src/gensim/models/w2v')
 
     # Version with glove but only words in corpus 
 
@@ -187,7 +187,7 @@ if __name__ == '__main__':
                 vectors.append(glove[word])
                 noms.append(word)
 
-    coords, labels = reduce_dimensions2(vectors, noms, method='tsne', n=dimension)
+    coords, labels = reduce_dimensions2(vectors, noms, method='pca', n=dimension)
 
 
     print("\nSaving the data...")
@@ -203,5 +203,5 @@ if __name__ == '__main__':
     df['label'] = labels
 
     #df.to_csv(path+'/src/gensim/models/corpus4/coords2D.csv', index=False)
-    df.to_csv(path+'/src/gensim/models/test/'+name, index=False)
+    df.to_csv(path+'/src/gensim/models/pca/'+name, index=False)
     print("Done")

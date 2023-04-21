@@ -6,169 +6,133 @@ import random
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.cluster import DBSCAN
+from sklearn.cluster import OPTICS
 import numpy as np
+import sys
 
-path = os.getcwd()
-path_model = path+"/src/gensim/models"
+### LOAD VALUES ###
 
-df = pd.read_csv(path_model+"/coords.csv")
 
-x_vals = df['x']
-y_vals = df['y']
-z_vals = df['z']
-
-labels = df['label']
 
 from mpl_toolkits.mplot3d import Axes3D
 
-def plot_with_matplotlib_3d(x_vals, y_vals, z_vals, labels):
-        
-    
-        random.seed(0)
-    
-        fig = plt.figure(figsize=(12, 12))
-        ax = fig.add_subplot(111, projection='3d')
-        ax.scatter(x_vals, y_vals, z_vals)
-    
-        #
-        # Label randomly subsampled 25 data points
-        #
-        indices = list(range(len(labels)))
-        selected_indices = random.sample(indices, 25)
-        for i in selected_indices:
-            ax.text(x_vals[i], y_vals[i], z_vals[i], labels[i])
-                    
-        plt.show()
+### TOOLS ###
 
-
-
-def plot_embeddings_cluster(x_vals, y_vals, z_vals, words, method = 'kmeans', n=6):
+def plot_embeddings_cluster(coords : np.ndarray, words : pd.DataFrame, method = 'kmeans', **param) -> None:
     '''
-    Plot in a 2D-graph the words vectors, highlighting a number n of clusters. We are using the method k-means.
+    Plot a 2D or 3D graph of the words vectors, highlighting a number n of clusters. 
+    Using the given method
 
     ## Params:
-        M_reduced (numpy matrix of shape (num_corpus_words, dim=2)): co-occurence matrix reduced by reduce_to_k_dim
-        word2ind: dictionary mapping each word to its row number in M_reduced 
+        coords ndarray of the words vectors
         words: array of the words vectors we are plotting
+        method: the method used to cluster the words vectors
+        n_cluster (int): number of clusters to plot (default = 10)
+        eps (float): the maximum distance between two samples for one to be considered as in the neighborhood of the other.
+        min_samples (int): the number of samples (or total weight) in a neighborhood for a point to be considered as a core point. This includes the point itself.
+
+    ## Ouput: 
+        Show the Graph
+        
     '''
+
     if method == 'kmeans':
-        clf = KMeans(n_clusters= n)
+
+        if 'n_cluster' in param:
+            n = param['n']
+        else:
+            n = 10
+
+        clf = KMeans(n_clusters= n, n_init='auto')
     if method == 'dbscan':
-        clf = DBSCAN(eps=0.3, min_samples=10)
-    #clf = KMeans(n_clusters= n) # Modify here the number of clusters
-    X = x_vals
-    Y = y_vals
-    Z = z_vals
+
+        if 'eps' in param:
+            eps = param['eps']
+        else:
+            eps = 0.3
+        
+        if 'min_samples' in param:
+            min_samples = param['min_samples']
+        else:
+            min_samples = 10
+        
+        
+        clf = DBSCAN(eps=eps, min_samples=min_samples)
+    if method == "optics":
+        
+        if 'eps' in param:
+            max_eps = param['eps']
+        else:
+            max_eps = np.inf
+
+        if 'min_samples' in param:
+            min_samples = param['min_samples']
+        else:
+            min_samples = 10
+
+        clf = OPTICS(min_samples=min_samples, max_eps=max_eps)
     
-    d= {'X' : X, 'Y' : Y, 'Z' : Z}
-    df = pd.DataFrame(data = d)
+    df = pd.DataFrame(data = coords)
     clf.fit(df)
     labels = clf.labels_
-    print(labels)
-    # Generate n random colors
 
-    #colors = [np.random.rand(3,) for i in range(n)]
-    #colors = ['g.', 'r.', 'b.', 'c.', 'y.', 'm.'] # Modify this array if you use more than 6 clusters (add more colors)
+
+    #print(labels)
     # Plot the points using plt.scatter with the colors according to the cluster they belong to
     fig = plt.figure(figsize=(12, 12))
-    ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(x_vals, y_vals, z_vals, cmap='rainbow', c=labels)
+    if coords.shape[1] == 2:
+        ax = fig.add_subplot(111)
+        ax.scatter(*coords.transpose(), cmap='rainbow', c=labels)
+    if coords.shape[1] == 3:
+        ax = fig.add_subplot(111, projection='3d')
+        ax.scatter(*coords.transpose(), cmap='rainbow', c=labels)
 
     # Label randomly subsampled 100 data points
 
     indices = list(range(len(words)))
     selected_indices = random.sample(indices, 100)
     for i in selected_indices:
-        ax.text(x_vals[i], y_vals[i], z_vals[i], words[i])
+        ax.text(*coords[i], words[i])
     
 
     plt.show()
 
-def plot_embeddings_cluster2(x_vals, y_vals, words, n = 6):
-    '''
-    Plot in a 2D-graph the words vectors, highlighting a number n of clusters. We are using the method k-means.
-
-    ## Params:
-        M_reduced (numpy matrix of shape (num_corpus_words, dim=2)): co-occurence matrix reduced by reduce_to_k_dim
-        word2ind: dictionary mapping each word to its row number in M_reduced 
-        words: array of the words vectors we are plotting
-    '''
-    clf = KMeans(n_clusters= n) # Modify here the number of clusters
-    X = x_vals
-    Y = y_vals
-    
-    d= {'X' : X, 'Y' : Y}
-    df = pd.DataFrame(data = d)
-    clf.fit(df)
-    labels = clf.labels_
-    # Generate n random colors
-
-    #colors = [np.random.rand(3,) for i in range(n)]
-    #colors = ['g.', 'r.', 'b.', 'c.', 'y.', 'm.'] # Modify this array if you use more than 6 clusters (add more colors)
-    # Plot the points using plt.scatter with the colors according to the cluster they belong to
-    plt.figure(figsize = (20,16))
-    plt.scatter(X, Y, c=labels, cmap='rainbow')
-    plt.show()
-
-def elbow_method(x_vals, y_vals, z_vals, words, max_n = 10):
+def elbow_method(coords, method = 'kmeans',  n = 10) -> None:
     '''
     Plot the elbow method to find the optimal number of clusters
 
     ## Params:
-        
+        max_n (int): maximum number of clusters to test
+        coords : coordinates of the points we are plotting
     '''
 
-    X = x_vals
-    Y = y_vals
-    Z = z_vals
-    
-    d= {'X' : X, 'Y' : Y, 'Z' : Z}
-    df = pd.DataFrame(data = d)
+    df = pd.DataFrame(data = coords)
     sse = []
-    list_k = list(range(1, max_n))
-    for k in list_k:
-        km = KMeans(n_clusters=k)
-        km.fit(df)
-        sse.append(km.inertia_)
-    plt.figure(figsize=(6, 6))
-    plt.plot(list_k, sse, '-o')
-    plt.xlabel('Number of clusters *k*')
-    plt.ylabel('Sum of squared distance')
+
+
+    if method == 'kmeans':
+
+        for k in range(1,n+1):
+            print("Computing Elbow method for KMeans with k = ", k, " ...", end="\r", flush=True)
+            kmeans = KMeans(n_clusters=k, n_init='auto')
+            kmeans.fit(df)
+            sse.append(kmeans.inertia_)
+
+        plt.figure(figsize=(6, 6))
+        plt.title('Elbow Method with ' + str(len(coords[0])) + ' dimension')
+        plt.plot(range(1,n+1), sse, '-o')
+        # add name to figure
+    
+        plt.xlabel('Number of clusters *k*')
+        plt.ylabel('Sum of squared distance')
 
     plt.show()
 
-def elbow_method2(x_vals, y_vals, words, max_n = 10):
-    '''
-    Plot the elbow method to find the optimal number of clusters
+    if method == 'dbscan':
 
-    ## Params:
-        
-    '''
+        print("Not available YET")
 
-    X = x_vals
-    Y = y_vals
-    
-    d= {'X' : X, 'Y' : Y}
-    df = pd.DataFrame(data = d)
-    sse = []
-    list_k = list(range(1, max_n))
-    for k in list_k:
-        km = KMeans(n_clusters=k)
-        km.fit(df)
-        sse.append(km.inertia_)
-    plt.figure(figsize=(6, 6))
-    plt.plot(list_k, sse, '-o')
-    plt.xlabel('Number of clusters *k*')
-    plt.ylabel('Sum of squared distance')
-
-    plt.show()
-
-#plot_embeddings_cluster2(x_vals, y_vals, labels, n = 4)
-#elbow_method2(x_vals, y_vals, labels, max_n = 15)
-#elbow_method(x_vals, y_vals, z_vals, labels, max_n = 15)
-#plot_embeddings_cluster(x_vals, y_vals, z_vals, labels, n = 7)
-
-### Print the words of each cluster
+### DEBUG FUNCTIONS ###
 
 def print_cluster_words(x_vals, y_vals, z_vals, words, n = 6):
     '''
@@ -196,6 +160,66 @@ def print_cluster_words(x_vals, y_vals, z_vals, words, n = 6):
         for j in selected_indices:
             print(words[j])
         print('')
+
+def avg_distance(coords):
+    # random sample of 1000 points
+    indices = list(range(len(coords)))
+    selected_indices = random.sample(indices, 1000)
+    coords = coords[selected_indices]
+    # compute the average distance between each point and its 10 nearest neighbors
+    from sklearn.neighbors import NearestNeighbors
+    nbrs = NearestNeighbors(n_neighbors=10, algorithm='ball_tree').fit(coords)
+    distances, indices = nbrs.kneighbors(coords)
+    avg_distances = np.mean(distances, axis=1)
+    return avg_distances
+
+
+
+if __name__ == "__main__":
+
+    if len(sys.argv) > 1:
+        """
+        argv[1] = path to the file containing the vectors to use 
+        argv[2] = method to use
+        argv[3] = parameters        
+        """
+        name_path = sys.argv[1]
+        if len(sys.argv) > 2:
+            method = sys.argv[2]
+        else :
+            method = 'kmeans'
+    else :
+        method = 'kmeans'
+        name_path = "coords2D.csv"    
+
+    print("Running main")
+
     
-print_cluster_words(x_vals, y_vals, z_vals, labels, n = 7)
-plot_embeddings_cluster(x_vals, y_vals, z_vals, labels,method = 'dbscan')
+    path = os.getcwd()
+    path_model = path+"/src/gensim/models/"
+
+    print("Loading data from ", path_model+name_path, " ...")
+
+    df = pd.read_csv(path_model+name_path)
+
+    # get the columns
+    keys = df.keys()
+    # get all keys except label
+    keys = keys[:-1]
+    coords = df[keys].values
+
+    labels = df['label']
+    
+    if method == "kmeans":
+        param = {'n': 10}
+    if method == "dbscan":
+        param = {'eps': 0.3, 'min_samples': 10}
+    if method == "optics":
+        param = {'eps': 0.3, 'min_samples': 10}
+
+    
+
+    plot_embeddings_cluster(coords, labels, method = method, **param)
+    #plot_embeddings_cluster(coords, labels, method = 'dbscan', eps = 0.3, min_samples = 10)
+    #plot_embeddings_cluster(coords, labels, method = 'optics', eps = 0.3, min_samples = 10)
+    #elbow_method(coords, method = 'kmeans', n = 10)
