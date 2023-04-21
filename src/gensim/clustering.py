@@ -193,10 +193,20 @@ def cluster_themes(coords : np.ndarray, words : pd.DataFrame, path : str,  metho
     df['labels'] = labels
     df = df.sort_values(by=['labels'])
     # format name with : dimension, method, parameters
-    name = "clusters" + "_" + str(len(coords[0])) + "_" + method + "_" + str(param) + ".csv"
-    print("Saving the dataframe at ", path+name, " ...", end="\n")
+    if method == 'kmeans':
+        param_str = str(n)
+    if method == 'dbscan':
+        param_str = str(eps) + "_" + str(min_samples)
+    if method == 'optics':
+        param_str = str(max_eps) + "_" + str(min_samples)
+    
+    # Remove all from the last /
+    path_model = path[:path.rfind('/')+1]
+    print(path_model)
+    name = "clusters" + "_" + str(len(coords[0])) + "D_" + method + "_" + param_str + ".csv"
+    print("Saving the dataframe at ", path_model+name, " ...", end="\n")
     #print(path)
-    df.to_csv(path+name, index=False)
+    df.to_csv(path_model+name, index=False)
 
 
     
@@ -230,17 +240,17 @@ if __name__ == "__main__":
             method = 'kmeans'
     else :
         method = 'kmeans'
-        name_path = "coords2D.csv"    
+        name_path = "default/coords2D.csv"    
 
     print("Running main")
 
     
     path = os.getcwd()
-    path_model = path+"/src/gensim/models/"
+    path_model = path+"/src/gensim/models/" + name_path
 
-    print("Loading data from ", path_model+name_path, " ...")
+    print("Loading data from ", path_model, " ...")
 
-    df = pd.read_csv(path_model+name_path)
+    df = pd.read_csv(path_model)
 
     # get the columns
     keys = df.keys()
@@ -257,11 +267,11 @@ if __name__ == "__main__":
     if method == "optics":
         param = {'eps': 0.3, 'min_samples': 10}
 
+    plot_embeddings_cluster(coords, labels, method = method, **param)
     cluster = cluster_themes(coords, labels, path_model, method = method, **param)
     #print("Plotting the clusters ...")
     #plot_themes(labels, cluster, path_model+"themes.csv")
 
-    #plot_embeddings_cluster(coords, labels, method = method, **param)
     #plot_embeddings_cluster(coords, labels, method = 'dbscan', eps = 0.3, min_samples = 10)
     #plot_embeddings_cluster(coords, labels, method = 'optics', eps = 0.3, min_samples = 10)
     #elbow_method(coords, method = 'kmeans', n = 10)

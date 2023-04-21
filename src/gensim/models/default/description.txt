@@ -1,0 +1,3 @@
+Model W2V réalisé à la main
+Reduction de dimension via TSNE
+Forme en spiral un peu moche => Pas de cluster très pratiques...

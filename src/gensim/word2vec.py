@@ -118,11 +118,11 @@ def reduce_dimensions2(vectors, labels, **kwargs):
         n = 2
     
     if 'method' in kwargs:
-        if kwargs['method'] not in ['tsne', 'pca', 'svd']:
+        if kwargs['method'] not in ['tsne', 'pca', 'svd', 'default']:
             raise ValueError('method must be one of "tsne", "pca", "svd"')
+        if kwargs['method'] == 'default':
+            method = 'tsne'
         method = kwargs['method']
-    else:
-        method = 'tsne'
     
     num_dimensions = n  # final num dimensions (2D, 3D, etc)
 
@@ -153,8 +153,12 @@ if __name__ == '__main__':
     # Get args from command line
 
     dimension = 2
-    if len(sys.argv) > 1:
+    if len(sys.argv) >= 1:
         dimension = int(sys.argv[1])
+    if len(sys.argv) >= 2:
+        model_name = sys.argv[2]
+    else:
+        model_name = "default"
 
     ### PROCESSING
 
@@ -187,7 +191,7 @@ if __name__ == '__main__':
                 vectors.append(glove[word])
                 noms.append(word)
 
-    coords, labels = reduce_dimensions2(vectors, noms, method='pca', n=dimension)
+    coords, labels = reduce_dimensions2(vectors, noms, method=model_name, n=dimension)
 
 
     print("\nSaving the data...")
@@ -203,5 +207,5 @@ if __name__ == '__main__':
     df['label'] = labels
 
     #df.to_csv(path+'/src/gensim/models/corpus4/coords2D.csv', index=False)
-    df.to_csv(path+'/src/gensim/models/pca/'+name, index=False)
+    df.to_csv(path+'/src/gensim/models/'+model_name+"/"+name, index=False)
     print("Done")
