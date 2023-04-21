@@ -133,33 +133,73 @@ def elbow_method(coords, method = 'kmeans',  n = 10) -> None:
         print("Not available YET")
 
 ### DEBUG FUNCTIONS ###
-
-def print_cluster_words(x_vals, y_vals, z_vals, words, n = 6):
+def cluster_themes(coords : np.ndarray, words : pd.DataFrame, path : str,  method = 'kmeans', **param) -> np.ndarray:
     '''
-    Print the words of each cluster
+    Save the clusters in a csv file
 
     ## Params:
-        
+        coords ndarray of the words vectors
+        words: array of the words vectors we are plotting
+        method: the method used to cluster the words vectors
+        n_cluster (int): number of clusters to plot (default = 10)
+        eps (float): the maximum distance between two samples for one to be considered as in the neighborhood of the other.
+        min_samples (int): the number of samples (or total weight) in a neighborhood for a point to be considered as a core point. This includes the point itself.
+
+    ## Ouput: 
+        Updated coords with labels
     '''
 
-    clf = KMeans(n_clusters= n) # Modify here the number of clusters
-    X = x_vals
-    Y = y_vals
-    Z = z_vals
+    if method == 'kmeans':
+
+        if 'n_cluster' in param:
+            n = param['n']
+        else:
+            n = 10
+
+        clf = KMeans(n_clusters= n, n_init='auto')
+    if method == 'dbscan':
+
+        if 'eps' in param:
+            eps = param['eps']
+        else:
+            eps = 0.3
+        
+        if 'min_samples' in param:
+            min_samples = param['min_samples']
+        else:
+            min_samples = 10
+        
+        
+        clf = DBSCAN(eps=eps, min_samples=min_samples)
+    if method == "optics":
+        
+        if 'eps' in param:
+            max_eps = param['eps']
+        else:
+            max_eps = np.inf
+
+        if 'min_samples' in param:
+            min_samples = param['min_samples']
+        else:
+            min_samples = 10
+
+        clf = OPTICS(min_samples=min_samples, max_eps=max_eps)
     
-    d= {'X' : X, 'Y' : Y, 'Z' : Z}
-    df = pd.DataFrame(data = d)
+    df = pd.DataFrame(data = coords)
     clf.fit(df)
     labels = clf.labels_
 
-    # Print 15 random words of each cluster
-    for i in range(n):
-        indices = np.where(labels == i)[0]
-        selected_indices = random.sample(list(indices), 15)
-        print('Cluster', i)
-        for j in selected_indices:
-            print(words[j])
-        print('')
+    df = pd.DataFrame(data = words)
+    df['labels'] = labels
+    df = df.sort_values(by=['labels'])
+    # format name with : dimension, method, parameters
+    name = "clusters" + "_" + str(len(coords[0])) + "_" + method + "_" + str(param) + ".csv"
+    print("Saving the dataframe at ", path+name, " ...", end="\n")
+    #print(path)
+    df.to_csv(path+name, index=False)
+
+
+    
 
 def avg_distance(coords):
     # random sample of 1000 points
@@ -217,9 +257,11 @@ if __name__ == "__main__":
     if method == "optics":
         param = {'eps': 0.3, 'min_samples': 10}
 
-    
+    cluster = cluster_themes(coords, labels, path_model, method = method, **param)
+    #print("Plotting the clusters ...")
+    #plot_themes(labels, cluster, path_model+"themes.csv")
 
-    plot_embeddings_cluster(coords, labels, method = method, **param)
+    #plot_embeddings_cluster(coords, labels, method = method, **param)
     #plot_embeddings_cluster(coords, labels, method = 'dbscan', eps = 0.3, min_samples = 10)
     #plot_embeddings_cluster(coords, labels, method = 'optics', eps = 0.3, min_samples = 10)
     #elbow_method(coords, method = 'kmeans', n = 10)
