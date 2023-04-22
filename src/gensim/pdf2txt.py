@@ -51,6 +51,8 @@ def check(word : str)->bool:
     """
     Manual Check on word based on observation
     """
+    if word in nltk.corpus.stopwords.words('english'):
+        return True
     return len(word)==1 or word=='cid'
 
 # Function to clean the text of a pdf file
@@ -155,11 +157,16 @@ def save_txt(text : str, path : str, name : str = None):
 n = len(doc_names)
 
 stats = pd.DataFrame(columns=['name','nb_pages', 'size', 'size_removed', 'size_removed_percent'])
-path_save = path[:-1]+'5'
+path_save = path[:-1]+'6'
 
+if not os.path.exists(path_save):
+    os.mkdir(path_save)
+if not os.path.exists(path_save+'/removed'):
+    os.mkdir(path_save+'/removed')
 
 # Apply to corpus 2
 
+t_start = time.time()
 for i in range(n):
     print('Document ', i+1, '/', n, " : ", doc_names[i])
     text,npages = pdf_import(path+'/'+doc_names[i])
@@ -169,12 +176,15 @@ for i in range(n):
     text = ' '.join(text)
     removed = '\n'.join(removed)
     save_txt(text, path_save, doc_names[i][:-4])
-    save_txt(removed, path_save, doc_names[i][:-4]+'_removed')
+    save_txt(removed, path_save+'/removed', doc_names[i][:-4]+'_removed')
     sys.stdout.write("\033[F") # Cursor up one line
     sys.stdout.write("\033[K") # Clear to the end of line
     sys.stdout.write("\033[F") # Cursor up one line
     sys.stdout.write("\033[K") # Clear to the end of line
 
 # Save stats in csv file
+t_end = time.time()
+print("Done : Saving stats...")
+print("Time : ", t_end-t_start, "s")
+stats.to_csv(path_save+'/removed'+'/stats.csv')
 
-stats.to_csv(path_save+'/stats.csv')

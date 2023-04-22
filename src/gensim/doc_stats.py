@@ -11,8 +11,8 @@ from termcolor import colored
 
 # EXECUTE FROM THE ROOT OF THE PROJECT 
 path = os.getcwd()
-ID = 4 # change this to the ID of the corpus you want to clean
-path = path+"/data/"+'corpus/corpus'+str(ID)
+ID = 6 # change this to the ID of the corpus you want to clean
+path = path+"/data/"+'corpus/corpus'+str(ID)+'/removed'
 
 df = pd.read_csv(path+'/stats.csv', index_col=0)
 

@@ -1,0 +1,5 @@
+RETIRE LES STOPWORDS DIRECTEMENT DANS LE FICHIER .txt
+
+STATS SUR LES STOPWORDS OMG :)
+
+on tourne autour des 40% au minima quand même c'est chaud
