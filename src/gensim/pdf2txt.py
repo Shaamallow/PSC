@@ -23,7 +23,7 @@ from termcolor import colored
 
 import gensim.downloader as api
 
-# Path variable 
+# Path variable c
 
 # EXECUTE FROM THE ROOT OF THE PROJECT 
 path = os.getcwd()
@@ -47,6 +47,11 @@ print("Time : ", t2-t1, "s")
 
 dic = dic.index_to_key
 
+def check(word : str)->bool:
+    """
+    Manual Check on word based on observation
+    """
+    return len(word)==1 or word=='cid'
 
 # Function to clean the text of a pdf file
 
@@ -76,7 +81,7 @@ def clean_text(text : str):
     i = 0
     for word in text:
         print('Processing ', str(i+1),'/', len(text), ' : ', word, end=' ')
-        if word not in dic:
+        if (word not in dic) or check(word):
             removed.append(word)
             print(colored('removed', 'red'), end='\r')
         else : 
@@ -150,7 +155,7 @@ def save_txt(text : str, path : str, name : str = None):
 n = len(doc_names)
 
 stats = pd.DataFrame(columns=['name','nb_pages', 'size', 'size_removed', 'size_removed_percent'])
-path_save = path[:-1]+'4'
+path_save = path[:-1]+'5'
 
 
 # Apply to corpus 2

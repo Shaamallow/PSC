@@ -12,7 +12,7 @@ from termcolor import colored
 ### DEFINE PATH and folder
 
 path = os.getcwd()
-corpus_path = '/data/corpus/corpus1'
+corpus_path = '/data/corpus/corpus5'
 
 files = os.listdir(path+corpus_path)
 
