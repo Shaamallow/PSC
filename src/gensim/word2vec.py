@@ -22,7 +22,7 @@ from termcolor import colored
 ### GLOBAL VARIABLES ###
 
 path = os.getcwd()
-corpus_path = '/data/corpus/corpus4'
+corpus_path = '/data/corpus/corpus7'
 
 
 files = os.listdir(path+corpus_path)
@@ -118,10 +118,8 @@ def reduce_dimensions2(vectors, labels, **kwargs):
         n = 2
     
     if 'method' in kwargs:
-        if kwargs['method'] not in ['tsne', 'pca', 'svd', 'default']:
+        if kwargs['method'] not in ['tsne', 'pca', 'svd']:
             raise ValueError('method must be one of "tsne", "pca", "svd"')
-        if kwargs['method'] == 'default':
-            method = 'tsne'
         method = kwargs['method']
     
     num_dimensions = n  # final num dimensions (2D, 3D, etc)
@@ -150,15 +148,32 @@ def reduce_dimensions2(vectors, labels, **kwargs):
 
 if __name__ == '__main__':
 
+    """
+    # Parameters
+
+    - dimension : Dimension of the vectors (default 2) : 2-3
+    - model_name : Name of the model (default 'pca') : [pca, tsne]
+    - folder : Folder to save the results (default 'default') : in /models/FOLDER/coords\dD.csv
+    
+    """
+
     # Get args from command line
 
     dimension = 2
-    if len(sys.argv) >= 1:
+    if len(sys.argv) > 1:
         dimension = int(sys.argv[1])
-    if len(sys.argv) >= 2:
+    else:
+        dimension = 2
+
+    if len(sys.argv) > 2:
         model_name = sys.argv[2]
     else:
-        model_name = "default"
+        model_name = "pca"
+
+    if len(sys.argv) > 3:
+        folder = sys.argv[3]
+    else:
+        folder = "default"
 
     ### PROCESSING
 
@@ -207,5 +222,5 @@ if __name__ == '__main__':
     df['label'] = labels
 
     #df.to_csv(path+'/src/gensim/models/corpus4/coords2D.csv', index=False)
-    df.to_csv(path+'/src/gensim/models/'+model_name+"/"+name, index=False)
+    df.to_csv(path+'/src/gensim/models/'+folder+"/"+name, index=False)
     print("Done")

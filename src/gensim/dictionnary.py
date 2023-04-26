@@ -33,5 +33,11 @@ words_bow = dictionary.doc2bow(words.lower().split())
 print(words_bow)
 print(tfidf[words_bow])
 
+# Plot histogram of the documents 
+
+import matplotlib.pyplot as plt
+
+
+
 
 print()

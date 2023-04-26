@@ -8,6 +8,7 @@ from sklearn.cluster import KMeans
 from sklearn.cluster import DBSCAN
 from sklearn.cluster import OPTICS
 import numpy as np
+import gensim as gm
 import sys
 
 ### LOAD VALUES ###
@@ -15,6 +16,25 @@ import sys
 
 
 from mpl_toolkits.mplot3d import Axes3D
+
+### LOAD CORPUS ###
+
+class MyCorpus(object):
+    """ iterate over the corpus 
+    Assume Corpus is already cleaned with preprocessing and is only made of .txt files
+    """
+    def __init__(self, ID):
+        self.ID = ID # should be the path to the CORPUS folder
+        self.path = os.getcwd() + '/data/corpus/corpus' + str(ID)
+        self.dir = os.listdir(self.path)
+        self.files = [f for f in self.dir if f[-4:] == '.txt']
+    
+    def __iter__(self):
+        for doc_path in self.files:
+            #print('Process doc : ' + doc_path)
+            with open(self.path + '/' + doc_path, 'r') as f:
+                text = f.read()
+            yield text.split()
 
 ### TOOLS ###
 
@@ -38,7 +58,7 @@ def plot_embeddings_cluster(coords : np.ndarray, words : pd.DataFrame, method = 
 
     if method == 'kmeans':
 
-        if 'n_cluster' in param:
+        if 'n' in param:
             n = param['n']
         else:
             n = 10
@@ -133,7 +153,7 @@ def elbow_method(coords, method = 'kmeans',  n = 10) -> None:
         print("Not available YET")
 
 ### DEBUG FUNCTIONS ###
-def cluster_themes(coords : np.ndarray, words : pd.DataFrame, path : str,  method = 'kmeans', **param) -> np.ndarray:
+def cluster_themes(coords : np.ndarray, words : pd.DataFrame, path : str,frequency : pd.DataFrame,  method = 'kmeans', **param) -> np.ndarray:
     '''
     Save the clusters in a csv file
 
@@ -151,7 +171,7 @@ def cluster_themes(coords : np.ndarray, words : pd.DataFrame, path : str,  metho
 
     if method == 'kmeans':
 
-        if 'n_cluster' in param:
+        if 'n' in param:
             n = param['n']
         else:
             n = 10
@@ -199,6 +219,15 @@ def cluster_themes(coords : np.ndarray, words : pd.DataFrame, path : str,  metho
         param_str = str(eps) + "_" + str(min_samples)
     if method == 'optics':
         param_str = str(max_eps) + "_" + str(min_samples)
+
+    # add a new tfidf colum to the dataframe
+    df['tfidf'] = 0
+    # map the tfidf of each word to the dataframe
+    print(frequency['word'].values)
+    for i in range(len(df)):
+        if df.loc[i,'label'] in frequency['word'].values:
+            df.loc[i,'tfidf'] = frequency.loc[frequency['word'] == df.loc[i,'label'], 'tfidf'].values[0]
+    
     
     # Remove all from the last /
     path_model = path[:path.rfind('/')+1]
@@ -208,8 +237,67 @@ def cluster_themes(coords : np.ndarray, words : pd.DataFrame, path : str,  metho
     #print(path)
     df.to_csv(path_model+name, index=False)
 
+def tfidf(corpus : MyCorpus):
+    """
+    ## Input :
+    - corpus : Corpus Class ~ iterable object
+    - doc : name of the document in the corpus you want the results of
 
+    ## Output : 
+    bow, dictionnary, tfidf
+    """
+
+    # Create a dictionnary with all the words in the corpus
+    dictionary = gm.corpora.Dictionary(corpus)
+    # Create a bag of words for each document
+    bow = [dictionary.doc2bow(doc) for doc in corpus]
+    # Create the tfidf model
+    tfidf = gm.models.TfidfModel(bow)
+    # Apply the tfidf model to the bag of words
+
+    return bow, dictionary, tfidf
     
+def get_best_words(bow, dictionary : gm.corpora.Dictionary, tfidf : gm.models.TfidfModel, doc : int, n = 10):
+    """
+    ## Input :
+    - bow : bag of words
+    - dictionary : dictionnary
+    - tfidf : tfidf model
+    - doc : number of the document in the Corpus.folder list
+    - n : number of words to return
+
+    ## Output : 
+    - best_words : df of all words in the document with their tfidf
+    """
+
+    def order_tuples_by_second(tuples):
+        return sorted(tuples, key=lambda x: x[1], reverse=True)
+
+    # Create a DF using the words as index and the tfidf as values
+    df = pd.DataFrame(columns = ['word', 'tfidf'])
+    # for the 1st document only 
+    l = order_tuples_by_second(tfidf[bow][doc])
+    for i in range(len(l)):
+        df.loc[i] = [dictionary[l[i][0]], l[i][1]]
+    
+    return df
+
+
+def load_model(path : str):
+    """
+    Load the model from the path
+
+    ## Input :
+    - path : path to the model
+
+    ## Output : 
+    - model : the model
+    """
+
+    tfidf = gm.models.TfidfModel.load(path)
+    dictionary = tfidf.id2word()
+    for word in dictionary:
+        print(word)
 
 def avg_distance(coords):
     # random sample of 1000 points
@@ -222,6 +310,7 @@ def avg_distance(coords):
     distances, indices = nbrs.kneighbors(coords)
     avg_distances = np.mean(distances, axis=1)
     return avg_distances
+
 
 
 
@@ -261,14 +350,29 @@ if __name__ == "__main__":
     labels = df['label']
     
     if method == "kmeans":
-        param = {'n': 10}
+        param = {'n': 4 }
     if method == "dbscan":
         param = {'eps': 0.3, 'min_samples': 10}
     if method == "optics":
         param = {'eps': 0.3, 'min_samples': 10}
 
+    print(param)
+
+    #load_model(path+"/src/gensim/models/corpus7/"+"tfidf.model")
+    corpus = MyCorpus(6)
+    bow, dictionary, tfidf = tfidf(corpus)
+    # DF of the words with their tfidf
+    i = corpus.files.index("armenia_educational_national_plan.txt")
+    df = get_best_words(bow, dictionary, tfidf, doc= i, n = 10)
+    df.sort_values(by=['tfidf'], inplace=True, ascending=False)
+    print(df.head())
+    df.to_csv(path+"/src/gensim/models/corpus7/"+"tfidf.csv", index=False)
+
+    
+
+
     plot_embeddings_cluster(coords, labels, method = method, **param)
-    cluster = cluster_themes(coords, labels, path_model, method = method, **param)
+    cluster = cluster_themes(coords, labels, path_model,df, method = method, **param)
     #print("Plotting the clusters ...")
     #plot_themes(labels, cluster, path_model+"themes.csv")
 
