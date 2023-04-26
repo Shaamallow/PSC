@@ -110,7 +110,7 @@ def plot_embeddings_cluster(coords : np.ndarray, words : pd.DataFrame, method = 
     # Label randomly subsampled 100 data points
 
     indices = list(range(len(words)))
-    selected_indices = random.sample(indices, 100)
+    selected_indices = random.sample(indices, 50)
     for i in selected_indices:
         ax.text(*coords[i], words[i])
     
@@ -210,8 +210,8 @@ def cluster_themes(coords : np.ndarray, words : pd.DataFrame, path : str,frequen
     labels = clf.labels_
 
     df = pd.DataFrame(data = words)
-    df['labels'] = labels
-    df = df.sort_values(by=['labels'])
+    df['cluster'] = labels
+    df = df.sort_values(by=['cluster'])
     # format name with : dimension, method, parameters
     if method == 'kmeans':
         param_str = str(n)
@@ -352,9 +352,9 @@ if __name__ == "__main__":
     if method == "kmeans":
         param = {'n': 4 }
     if method == "dbscan":
-        param = {'eps': 0.3, 'min_samples': 10}
+        param = {'eps': 0.3, 'min_samples': 5}
     if method == "optics":
-        param = {'eps': 0.3, 'min_samples': 10}
+        param = {'min_samples': 5}
 
     print(param)
 
@@ -370,9 +370,9 @@ if __name__ == "__main__":
 
     
 
-
+    #print(avg_distance(coords))
     plot_embeddings_cluster(coords, labels, method = method, **param)
-    cluster = cluster_themes(coords, labels, path_model,df, method = method, **param)
+    #cluster = cluster_themes(coords, labels, path_model,df, method = method, **param)
     #print("Plotting the clusters ...")
     #plot_themes(labels, cluster, path_model+"themes.csv")
 
