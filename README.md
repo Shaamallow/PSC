@@ -51,6 +51,11 @@ Plus d'[INFO](https://www.nltk.org/data.html)
 
 **Bon courage pour le code**
 
+## Rapport Final
+
+Rapport au format pdf écrit sur Overleaf disponible sur le repo.
+
+Beaucoup de changement vis à vis de la roadmap, pas de finalisation de la Webapp, developpement d'autres modèles (LDA, NER...)
 ## Feuille de Route : 
 
 _Disclaimer : j'ai eu la flemme de crop_
