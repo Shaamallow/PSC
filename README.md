@@ -1,5 +1,15 @@
 # PSC X Illuin
 
+## Presentation
+
+- Create a tool that helps geographic analysts at UNESCO to grasp the stakes of a region’s education guidelines and compare
+worldwide.
+- Implement and work on NLP methods to extract the themes of a text corpus with a particular emphasis on
+explainability (Word2Vec, LSTMs, Named Entity Recognition, Latent Dirichlet Allocation)
+- Design new preprocessing steps in order to reduce the time complexity of NER by 40
+- Worked under the supervision of Dr. El Mahdi El Mhamdi and Emile Lucas from Illuin
+
+
 Nouveau répo, l'architecture des fichiers est plus réfléchie. Plannification à l'avance des fonctions (je me suis posé pour réfléchir à la :sparkles: forme :sparkles: du WebUI). 
 
 Point important Pour setup le projet, je vous conseille de faire un environnement virtuel (virtualenv) et d'installer les dépendances dans ce dernier. Je fais un petit tuto sur comment faire tout ça.
